@@ -1,15 +1,45 @@
 "use client"
 
-import { ChevronDown, Share, ExternalLink, X, HelpCircle } from "lucide-react"
+import {  Share, ExternalLink, X, HelpCircle } from "lucide-react"
+import { useEffect, useState } from "react"
+import { fetchLatestPosts, type Post } from "./service";
+import PostComponent from "./components/Post";
+import { baseUrl } from "./utils";
 
- function App() {
-  const posts = [
-    {
-      time: "14:33",
-      content: "BE COOL! Everything is going to work out well. The USA will be bigger and better than ever before!",
-    },
-    
-  ]
+function App() {
+  const [posts, setPosts] = useState<Post[]>([]);
+  useEffect(() => {
+    const initPostRequest = async () => {
+      try {
+        const initialPosts = await fetchLatestPosts();
+        setPosts(initialPosts)
+      }
+      catch (err) {
+        console.error("Error loading post", err)
+      }
+    }
+
+    initPostRequest()
+
+    //OPEN EVENT STREAM CLIENT
+    const eventSource = new EventSource(`${baseUrl}/stream`)
+    eventSource.onmessage = (event) => {
+      // if there is a new message parse the post and add it to the list if not duplicate
+      const newPost: Post = JSON.parse(event.data);
+      setPosts((prev) => {
+        if (prev.find((p) => p.id === newPost.id)) return prev;
+        return [newPost, ...prev].slice(0, 20);
+      });
+    };
+    eventSource.onerror = (err) => {
+      console.error('SSE error:', err);
+      eventSource.close();
+    };
+    return () => {
+      eventSource.close();
+    };
+  }, [])
+
 
   return (
     <div className="bg-slate-800 text-white min-h-screen">
@@ -26,18 +56,7 @@ import { ChevronDown, Share, ExternalLink, X, HelpCircle } from "lucide-react"
 
       {/* Feed */}
       <div className="max-w-2xl mx-auto">
-        {posts.map((post, index) => (
-          <div
-            key={index}
-            className="flex items-start gap-4 p-4 border-b border-slate-700/50 hover:bg-slate-700/20 transition-colors"
-          >
-            <div className="text-slate-400 text-sm font-mono min-w-[40px]">{post.time}</div>
-            <div className="flex-1 text-slate-200 text-sm leading-relaxed">{post.content}</div>
-            <div className="flex-shrink-0">
-              <ChevronDown className="w-4 h-4 text-slate-500" />
-            </div>
-          </div>
-        ))}
+        {posts.map((post) => <PostComponent key={post.id} datePosted={post.timestamp} content={post.content} link={post.url} />)}
       </div>
     </div>
   )
