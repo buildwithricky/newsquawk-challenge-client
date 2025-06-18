@@ -1,0 +1,1 @@
+# newsquawk-challenge-client
