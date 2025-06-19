@@ -8,7 +8,7 @@ type PostProps = {
   id:string
 }
 
-function Post({ datePosted, content, link ,id}: PostProps) {
+function Post({ datePosted, content,id}: PostProps) {
   const time = new Date(datePosted).toTimeString().slice(0, 5);
   // link builder
   const url = `https://truthsocial.com/@realDonaldTrump/posts/${id}`
