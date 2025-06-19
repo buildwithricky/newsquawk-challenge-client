@@ -56,7 +56,7 @@ function App() {
 
       {/* Feed */}
       <div className="max-w-2xl mx-auto">
-        {posts.map((post) => <PostComponent key={post.id} datePosted={post.timestamp} content={post.content} link={post.url} />)}
+        {posts.map((post) => <PostComponent id={post.id} key={post.id} datePosted={post.timestamp} content={post.content} link={post.url} />)}
       </div>
     </div>
   )
